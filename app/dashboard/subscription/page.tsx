@@ -5,215 +5,344 @@ import { useAuth } from "@/lib/auth-context";
 import api from "@/lib/api";
 import { formatPrice } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Check, CreditCard, Phone, BadgeCheck, Clock, AlertCircle, Loader2 } from "lucide-react";
+import {
+  DollarSign,
+  TrendingUp,
+  Percent,
+  BadgeCheck,
+  ShoppingBag,
+  Calendar,
+  ArrowUpRight,
+  Info,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 
-interface Subscription {
-  id: string;
-  plan_type: string;
-  status: string;
-  start_date: string;
-  end_date: string;
-  amount: number;
-  currency: string;
+interface EarningsData {
+  commissionRate: number;
+  totalRevenue: number;
+  totalCommission: number;
+  totalEarnings: number;
+  earnings: {
+    month: string;
+    revenue: number;
+    commission: number;
+    earnings: number;
+    orders: number;
+  }[];
 }
 
-const PLANS = [
-  {
-    id: "monthly",
-    name: "Monthly",
-    price: 2000,
-    period: "month",
-    features: ["Verified badge on store", "Priority listing in search", "Analytics dashboard", "Customer support"],
-  },
-  {
-    id: "yearly",
-    name: "Yearly",
-    price: 20000,
-    period: "year",
-    features: ["All Monthly features", "Save KES 4,000 vs monthly", "Featured store placement", "Dedicated account manager"],
-    popular: true,
-  },
-];
-
-export default function VendorSubscriptionPage() {
+export default function VendorEarningsPage() {
   const { vendor, refreshUser } = useAuth();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [mpesaPhone, setMpesaPhone] = useState("");
-  const [paying, setPaying] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"select" | "pay" | "processing" | "success">("select");
-  const [error, setError] = useState("");
+  const [requestingVerification, setRequestingVerification] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
-    async function fetchSub() {
+    async function fetchEarnings() {
       try {
-        const data = await api.get<{ subscription: Subscription | null }>("/api/vendor/subscription");
-        setSubscription(data.subscription);
+        const data = await api.get<EarningsData>("/api/vendor/earnings");
+        setEarnings(data);
       } catch {
-        // no sub
+        // No earnings yet
       } finally {
         setLoading(false);
       }
     }
-    fetchSub();
+    fetchEarnings();
   }, []);
 
-  const handlePay = async () => {
-    setError("");
-    if (!mpesaPhone || mpesaPhone.length < 10) {
-      setError("Enter a valid M-Pesa phone number");
-      return;
-    }
-    setPaying(true);
-    setPaymentStep("processing");
+  const handleRequestVerification = async () => {
+    setRequestingVerification(true);
+    setVerificationMessage(null);
     try {
-      await api.post("/api/mpesa/vendor-subscription", {
-        planType: selectedPlan,
-        phone: mpesaPhone,
-      });
-      // Simulate M-Pesa confirmation
-      setTimeout(async () => {
-        setPaymentStep("success");
-        setPaying(false);
-        await refreshUser();
-      }, 3000);
+      const response = await api.post<{ message: string }>(
+        "/api/vendor/request-verification",
+        {},
+      );
+      setVerificationMessage({ type: "success", text: response.message });
+      await refreshUser();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Payment failed");
-      setPaymentStep("pay");
-      setPaying(false);
+      setVerificationMessage({
+        type: "error",
+        text:
+          err instanceof Error ? err.message : "Failed to request verification",
+      });
+    } finally {
+      setRequestingVerification(false);
     }
   };
 
-  const isActive = subscription && subscription.status === "active" && new Date(subscription.end_date) > new Date();
-
   if (loading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading subscription info...</div>;
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-ig-green mx-auto" />
+        <p className="text-muted-foreground text-sm mt-2">
+          Loading earnings...
+        </p>
+      </div>
+    );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Subscription</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-2">
+        Earnings & Commission
+      </h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Subscribe to verify your store and unlock premium features.
+        Track your sales and earnings. We charge a small commission on completed
+        sales.
       </p>
 
-      {/* Current subscription */}
-      {isActive && subscription && (
-        <div className="bg-ig-green-light border border-ig-green/20 rounded-lg p-5 mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <BadgeCheck className="h-5 w-5 text-ig-green" />
-            <p className="font-semibold text-ig-green">Active Subscription</p>
+      {/* How it works */}
+      <div className="bg-ig-green-light border border-ig-green/20 rounded-xl p-6 mb-8">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-ig-green flex items-center justify-center shrink-0">
+            <Info className="h-5 w-5 text-white" />
           </div>
-          <p className="text-sm text-foreground">
-            Plan: <strong>{subscription.plan_type.charAt(0).toUpperCase() + subscription.plan_type.slice(1)}</strong>
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Expires: {new Date(subscription.end_date).toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" })}
-          </p>
-        </div>
-      )}
-
-      {!isActive && subscription && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">Subscription Expired</p>
-            <p className="text-xs text-amber-700">Renew your subscription to maintain your verified status.</p>
+            <h3 className="font-bold text-foreground mb-2">
+              How Our Commission Model Works
+            </h3>
+            <ul className="space-y-2 text-sm text-foreground">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-ig-green shrink-0 mt-0.5" />
+                <span>
+                  <strong>Free to join</strong> - No subscription fees or
+                  monthly charges
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-ig-green shrink-0 mt-0.5" />
+                <span>
+                  <strong>Unlimited products</strong> - Add as many products as
+                  you want
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-ig-green shrink-0 mt-0.5" />
+                <span>
+                  <strong>{earnings?.commissionRate || 10}% commission</strong>{" "}
+                  - Only pay when you make a sale
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-ig-green shrink-0 mt-0.5" />
+                <span>
+                  <strong>Weekly payouts</strong> - Receive your earnings every
+                  week
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white border border-border rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <ShoppingBag className="h-5 w-5 text-blue-600" />
+            </div>
+            <span className="text-sm text-muted-foreground">Total Revenue</span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">
+            {formatPrice(earnings?.totalRevenue || 0)}
+          </p>
+        </div>
+
+        <div className="bg-white border border-border rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <Percent className="h-5 w-5 text-amber-600" />
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Platform Commission
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">
+            {formatPrice(earnings?.totalCommission || 0)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {earnings?.commissionRate || 10}% of sales
+          </p>
+        </div>
+
+        <div className="bg-white border border-border rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-ig-green-light flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-ig-green" />
+            </div>
+            <span className="text-sm text-muted-foreground">Your Earnings</span>
+          </div>
+          <p className="text-2xl font-bold text-ig-green">
+            {formatPrice(earnings?.totalEarnings || 0)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {100 - (earnings?.commissionRate || 10)}% of sales
+          </p>
+        </div>
+
+        <div className="bg-white border border-border rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Commission Rate
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">
+            {earnings?.commissionRate || 10}%
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Per completed sale
+          </p>
+        </div>
+      </div>
+
+      {/* Monthly Breakdown */}
+      {earnings && earnings.earnings.length > 0 && (
+        <div className="bg-white border border-border rounded-xl p-6 mb-8">
+          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-ig-green" />
+            Monthly Breakdown
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Month
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Orders
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Revenue
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Commission
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
+                    Your Earnings
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {earnings.earnings.map((row, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-border/50 last:border-0"
+                  >
+                    <td className="py-3 px-4 text-sm font-medium text-foreground">
+                      {new Date(row.month).toLocaleDateString("en-KE", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-right text-foreground">
+                      {row.orders}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-right text-foreground">
+                      {formatPrice(row.revenue)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-right text-muted-foreground">
+                      -{formatPrice(row.commission)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-right font-medium text-ig-green">
+                      {formatPrice(row.earnings)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {paymentStep === "processing" && (
-        <div className="text-center py-12">
-          <Loader2 className="h-12 w-12 text-ig-green mx-auto mb-4 animate-spin" />
-          <h2 className="text-lg font-bold text-foreground mb-2">Processing Payment</h2>
-          <p className="text-sm text-muted-foreground">Check your phone for the M-Pesa prompt and enter your PIN.</p>
-        </div>
-      )}
-
-      {paymentStep === "success" && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-ig-green-light mx-auto mb-4 flex items-center justify-center">
-            <Check className="h-8 w-8 text-ig-green" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground mb-2">Subscription Activated!</h2>
-          <p className="text-sm text-muted-foreground mb-4">Your store is now verified. Enjoy premium features.</p>
-          <Button onClick={() => setPaymentStep("select")} className="bg-ig-green hover:bg-ig-green/90 text-white">
-            Done
+      {/* No earnings yet */}
+      {(!earnings || earnings.earnings.length === 0) && (
+        <div className="bg-white border border-border rounded-xl p-8 text-center mb-8">
+          <ShoppingBag className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="font-bold text-foreground mb-2">No Sales Yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Start adding products to your store and make your first sale!
+          </p>
+          <Button
+            asChild
+            className="bg-ig-green hover:bg-ig-green/90 text-white"
+          >
+            <a href="/dashboard/products">Add Products</a>
           </Button>
         </div>
       )}
 
-      {paymentStep === "select" && (
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white border-2 rounded-xl p-6 cursor-pointer transition-all hover:shadow-md ${
-                selectedPlan === plan.id ? "border-ig-green shadow-md" : "border-border"
-              } ${plan.popular ? "ring-1 ring-ig-green" : ""}`}
-              onClick={() => { setSelectedPlan(plan.id); setPaymentStep("pay"); }}
-            >
-              {plan.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-ig-green text-white text-xs font-bold px-3 py-1 rounded-full">
-                  BEST VALUE
-                </span>
-              )}
-              <h3 className="text-lg font-bold text-foreground mb-1">{plan.name}</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold text-ig-black">{formatPrice(plan.price)}</span>
-                <span className="text-sm text-muted-foreground">/{plan.period}</span>
-              </div>
-              <ul className="space-y-2 mb-6">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                    <Check className="h-4 w-4 text-ig-green shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button className={`w-full ${selectedPlan === plan.id ? "bg-ig-green hover:bg-ig-green/90 text-white" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                <CreditCard className="h-4 w-4 mr-2" />
-                Select Plan
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Verification Section */}
+      <div className="bg-white border border-border rounded-xl p-6">
+        <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
+          <BadgeCheck className="h-5 w-5 text-ig-green" />
+          Store Verification
+        </h2>
 
-      {paymentStep === "pay" && (
-        <div className="max-w-md mx-auto bg-white border border-border rounded-lg p-6">
-          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
-            <Phone className="h-5 w-5 text-ig-green" />
-            Pay with M-Pesa
-          </h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            You are subscribing to the {selectedPlan === "monthly" ? "Monthly" : "Yearly"} plan for{" "}
-            <strong>{formatPrice(selectedPlan === "monthly" ? 2000 : 20000)}</strong>.
-          </p>
-          {error && <div className="bg-ig-red-light text-ig-red text-sm p-3 rounded-lg mb-4">{error}</div>}
-          <div className="bg-ig-green-light rounded-lg p-3 mb-4 flex items-center gap-3">
-            <div className="bg-ig-green text-white font-bold text-sm px-3 py-1 rounded">M-PESA</div>
-            <p className="text-sm text-foreground">Safaricom M-Pesa</p>
-          </div>
-          <div className="mb-4">
-            <Label className="text-foreground">M-Pesa Phone Number</Label>
-            <div className="relative mt-1.5">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="tel" placeholder="0700000000" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} className="pl-10" />
+        {vendor?.is_verified ? (
+          <div className="bg-ig-green-light rounded-lg p-4 flex items-center gap-3">
+            <BadgeCheck className="h-6 w-6 text-ig-green" />
+            <div>
+              <p className="font-medium text-ig-green">
+                Your store is verified
+              </p>
+              <p className="text-xs text-foreground">
+                Verified on{" "}
+                {new Date(vendor.verified_at || "").toLocaleDateString("en-KE")}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setPaymentStep("select"); setSelectedPlan(null); }} className="text-foreground">Back</Button>
-            <Button onClick={handlePay} disabled={paying} className="flex-1 bg-ig-green hover:bg-ig-green/90 text-white font-semibold">
-              {paying ? "Processing..." : "Pay Now"}
+        ) : (
+          <div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Get a verified badge on your store to build trust with customers.
+              Verification is free - you just need at least 5 completed orders.
+            </p>
+
+            {verificationMessage && (
+              <div
+                className={`rounded-lg p-3 mb-4 flex items-center gap-2 ${
+                  verificationMessage.type === "success"
+                    ? "bg-ig-green-light text-ig-green"
+                    : "bg-ig-red-light text-ig-red"
+                }`}
+              >
+                {verificationMessage.type === "success" ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                <span className="text-sm">{verificationMessage.text}</span>
+              </div>
+            )}
+
+            <Button
+              onClick={handleRequestVerification}
+              disabled={requestingVerification}
+              className="bg-ig-green hover:bg-ig-green/90 text-white"
+            >
+              {requestingVerification ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+              )}
+              Request Verification
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   {
     href: "/dashboard/subscription",
     icon: CreditCard,
-    label: "Subscription",
+    label: "Earnings",
   },
   {
     href: "/dashboard/verification",
@@ -46,7 +46,7 @@ export default function VendorDashboardLayout({
 
   useEffect(() => {
     if (!loading && (!user || user.role !== "vendor")) {
-      router.push("/");
+      router.push("/vendor");
     }
   }, [user, loading, router]);
 
@@ -125,7 +125,7 @@ export default function VendorDashboardLayout({
               className="w-full justify-start gap-2 text-white/60 hover:text-white hover:bg-white/5"
               onClick={() => {
                 logout();
-                router.push("/");
+                router.push("/vendor");
               }}
             >
               <LogOut className="h-4 w-4" />

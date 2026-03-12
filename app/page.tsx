@@ -99,7 +99,7 @@ export default function VendorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-ig-black px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-12">
       <Link href="/" className="mb-8">
         <Image
           src="/images/logo.png"
@@ -132,6 +132,31 @@ export default function VendorLoginPage() {
             Register Store
           </button>
         </div>
+
+        {!isLogin && (
+          <div className="bg-ig-green-light text-ig-green text-sm p-3 rounded-lg mb-4 flex items-start gap-2">
+            <svg
+              className="h-4 w-4 mt-0.5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <div>
+              <p className="font-semibold">Free to Start Selling!</p>
+              <p className="text-xs text-foreground mt-0.5">
+                No subscription fees. Add unlimited products. Only pay 10%
+                commission on sales.
+              </p>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-ig-red-light text-ig-red text-sm p-3 rounded-lg mb-4">
@@ -202,7 +227,7 @@ export default function VendorLoginPage() {
                 <div className="relative mt-1.5">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="John"
+                    placeholder="Leonard"
                     value={form.firstName}
                     onChange={(e) => update("firstName", e.target.value)}
                     required
@@ -215,7 +240,7 @@ export default function VendorLoginPage() {
                 <div className="relative mt-1.5">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Doe"
+                    placeholder="Bett"
                     value={form.lastName}
                     onChange={(e) => update("lastName", e.target.value)}
                     required
@@ -252,7 +277,7 @@ export default function VendorLoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="leobett@example.com"
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
                   required
@@ -322,19 +347,19 @@ export default function VendorLoginPage() {
           </form>
         )}
 
-        <div className="relative my-6">
+        {/* <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-white px-3 text-muted-foreground">OR</span>
           </div>
-        </div>
-
+        </div> */}
+        {/* 
         <GoogleLoginButton
           onCredentialResponse={handleGoogleCredential}
           text="signin_with"
-        />
+        /> */}
 
         <p className="text-xs text-center text-muted-foreground mt-4">
           <Link href="/" className="text-ig-green hover:underline">
