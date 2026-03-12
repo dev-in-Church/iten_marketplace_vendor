@@ -362,7 +362,10 @@ export default function VendorLoginPage() {
         /> */}
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          <Link href="/" className="text-ig-green hover:underline">
+          <Link
+            href="https://runnermkt.sporttechies.com/"
+            className="text-ig-green hover:underline"
+          >
             Back to Store
           </Link>
         </p>

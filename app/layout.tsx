@@ -3,8 +3,11 @@ import { VendorProviders } from "./providers";
 import "./globals.css";
 
 export const metadata = {
-  title: "Vendor - ItenGear",
-  description: "ItenGear Vendor Dashboard - Manage your store",
+  title: "Vendor | RunnerMKT",
+  description: "RunnerMKT Vendor Dashboard - Manage your store",
+  icons: {
+    icon: "/images/icon.png",
+  },
 };
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
