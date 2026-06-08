@@ -68,7 +68,7 @@ export default function VendorDashboardPage() {
         <CheckCircle className="h-5 w-5 text-ig-green shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-semibold text-ig-green">
-            Free to Sell on ItenGear
+            Free to Sell on RunnerMKT
           </p>
           <p className="text-xs text-foreground mt-0.5">
             No subscription fees! Add unlimited products and only pay a{" "}

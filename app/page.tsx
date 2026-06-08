@@ -103,7 +103,7 @@ export default function VendorLoginPage() {
       <Link href="/" className="mb-8">
         <Image
           src="/images/logo.png"
-          alt="ItenGear"
+          alt="Runnermkt"
           width={160}
           height={56}
           className="h-14 w-auto"
