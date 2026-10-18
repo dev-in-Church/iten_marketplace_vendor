@@ -176,7 +176,9 @@ export default function VendorProductsPage() {
             </div>
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
-                <Label className="text-foreground">Price (KES) *</Label>
+                <Label className="text-foreground">
+                  Price (USD for international vendors, KES for local) *
+                </Label>
                 <Input
                   type="number"
                   value={form.price}
@@ -187,7 +189,9 @@ export default function VendorProductsPage() {
                 />
               </div>
               <div>
-                <Label className="text-foreground">Compare Price (KES)</Label>
+                <Label className="text-foreground">
+                  Compare Price (same currency)
+                </Label>
                 <Input
                   type="number"
                   value={form.comparePrice}
