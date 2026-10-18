@@ -9,7 +9,16 @@ import { GoogleLoginButton } from "@/components/google-login-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Store } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Store,
+  MapPin,
+} from "lucide-react";
 
 export default function VendorLoginPage() {
   const router = useRouter();
@@ -25,6 +34,7 @@ export default function VendorLoginPage() {
     confirmPassword: "",
     storeName: "",
     storeDescription: "",
+    country: "Kenya",
   });
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
@@ -76,6 +86,7 @@ export default function VendorLoginPage() {
         password: form.password,
         storeName: form.storeName,
         storeDescription: form.storeDescription,
+        country: form.country,
       });
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -99,11 +110,11 @@ export default function VendorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-12">
       <Link href="/" className="mb-8">
         <Image
           src="/images/logo.png"
-          alt="Runnermkt"
+          alt="ItenGear"
           width={160}
           height={56}
           className="h-14 w-auto"
@@ -227,7 +238,7 @@ export default function VendorLoginPage() {
                 <div className="relative mt-1.5">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Leonard"
+                    placeholder="John"
                     value={form.firstName}
                     onChange={(e) => update("firstName", e.target.value)}
                     required
@@ -240,7 +251,7 @@ export default function VendorLoginPage() {
                 <div className="relative mt-1.5">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Bett"
+                    placeholder="Doe"
                     value={form.lastName}
                     onChange={(e) => update("lastName", e.target.value)}
                     required
@@ -272,12 +283,40 @@ export default function VendorLoginPage() {
               />
             </div>
             <div>
+              <Label htmlFor="country" className="text-foreground">
+                Country
+              </Label>
+              <div className="relative mt-1.5">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <select
+                  id="country"
+                  value={form.country}
+                  onChange={(e) => update("country", e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm"
+                  required
+                >
+                  <option value="Kenya">🇰🇪 Kenya</option>
+                  <option value="China">🇨🇳 China</option>
+                  <option value="United States">🇺🇸 United States</option>
+                  <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                  <option value="United Arab Emirates">
+                    🇦🇪 United Arab Emirates
+                  </option>
+                  <option value="Germany">🇩🇪 Germany</option>
+                  <option value="Other">🌐 Other</option>
+                </select>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Vendors outside Kenya are listed as international vendors.
+              </p>
+            </div>
+            <div>
               <Label className="text-foreground">Email</Label>
               <div className="relative mt-1.5">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="email"
-                  placeholder="leobett@example.com"
+                  placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
                   required
@@ -347,25 +386,22 @@ export default function VendorLoginPage() {
           </form>
         )}
 
-        {/* <div className="relative my-6">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-white px-3 text-muted-foreground">OR</span>
           </div>
-        </div> */}
-        {/* 
+        </div>
+
         <GoogleLoginButton
           onCredentialResponse={handleGoogleCredential}
           text="signin_with"
-        /> */}
+        />
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          <Link
-            href="https://runnermkt.sporttechies.com/"
-            className="text-ig-green hover:underline"
-          >
+          <Link href="/" className="text-ig-green hover:underline">
             Back to Store
           </Link>
         </p>
